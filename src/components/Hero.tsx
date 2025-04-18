@@ -3,7 +3,7 @@ export default function HeroImage() {
     <section
       className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center text-white text-center px-4"
       style={{
-        backgroundImage: `url("../../public/Voiture.jpeg")`,
+        backgroundImage: `url("/Voiture.jpeg")`,
       }}
     >
       {/* Overlay */}
