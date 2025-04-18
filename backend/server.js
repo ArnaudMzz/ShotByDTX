@@ -66,3 +66,7 @@ app.listen(PORT, () =>
 mongoose.connect(process.env.MONGO_URI, {
   serverSelectionTimeoutMS: 20000, // 20s au lieu de 10
 });
+
+app.get("/", (req, res) => {
+  res.send("✅ Backend ShotByDTX is live and working !");
+});
