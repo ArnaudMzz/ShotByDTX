@@ -1,3 +1,4 @@
+// backend/server.js
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -19,7 +20,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Config stockage Cloudinary via multer
+// Stockage avec multer + cloudinary
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -29,13 +30,13 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage });
 
-// MongoDB
+// MongoDB connect
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Connecté à MongoDB"))
   .catch((err) => console.error("❌ MongoDB error", err));
 
-// Schéma
+// Schéma d'image
 const ImageSchema = new mongoose.Schema({
   src: String,
   alt: String,

@@ -1,3 +1,4 @@
+// src/components/AddImageForm.tsx
 import { useEffect, useRef, useState } from "react";
 
 type ImageToUpload = {
@@ -65,7 +66,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
         onNewImage({
           id: newImage._id,
           alt: newImage.alt,
-          src: newImage.src, // ✅ pas besoin de concaténer
+          src: newImage.src,
         });
       } catch (err) {
         console.error("❌ Erreur fetch:", err);
