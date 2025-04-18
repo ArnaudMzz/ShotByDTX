@@ -1,113 +1,155 @@
 // src/components/Gallery.tsx
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
-import AjouterImageForm from "./AddImageForm";
+import { useEffect, useRef, useState } from "react";
 
-type Photo = {
-  id: string;
-  src: string;
+type ImageToUpload = {
+  file: File;
+  preview: string;
   alt: string;
 };
 
-type ApiImage = {
-  _id: string;
-  src: string;
-  alt: string;
+type Props = {
+  onNewImage: (image: { id: string; src: string; alt: string }) => void;
 };
 
-export default function Gallery() {
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [selectedImage, setSelectedImage] = useState<Photo | null>(null);
-
+export default function AjouterImageForm({ onNewImage }: Props) {
+  const [images, setImages] = useState<ImageToUpload[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetch(`${API_URL}/api/images`)
-      .then((res) => res.json())
-      .then((data: ApiImage[]) => {
-        const updated = data.map((img) => ({
-          id: img._id,
-          alt: img.alt,
-          src: img.src,
-        }));
-        setPhotos(updated);
-      });
-  }, [API_URL]);
+    return () => {
+      images.forEach((img) => URL.revokeObjectURL(img.preview));
+    };
+  }, [images]);
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+
+    const newImages: ImageToUpload[] = Array.from(files)
+      .filter((file) => file.type.startsWith("image/"))
+      .map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+        alt: "",
+      }));
+
+    setImages((prev) => [...prev, ...newImages]);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    handleFiles(e.dataTransfer.files);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    for (const img of images) {
+      const formData = new FormData();
+      formData.append("image", img.file);
+      formData.append("alt", img.alt);
+
+      try {
+        const res = await fetch(`${API_URL}/api/images`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const msg = await res.text();
+          console.error("❌ Erreur serveur:", msg);
+          continue;
+        }
+
+        const newImage = await res.json();
+
+        onNewImage({
+          id: newImage._id,
+          alt: newImage.alt,
+          src: newImage.src,
+        });
+      } catch (err) {
+        console.error("❌ Erreur fetch:", err);
+      }
+    }
+
+    setImages([]);
+  };
+
+  const handleAltChange = (index: number, value: string) => {
+    setImages((prev) =>
+      prev.map((img, i) => (i === index ? { ...img, alt: value } : img))
+    );
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   return (
-    <section className="bg-white dark:bg-gray-950 py-12 px-6">
-      <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 text-gray-800 dark:text-white">
-        Galerie
-      </h2>
-
-      <AjouterImageForm
-        onNewImage={(img) =>
-          setPhotos((prev) => [
-            ...prev,
-            { id: img.id, alt: img.alt, src: img.src },
-          ])
-        }
-      />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-10">
-        {photos.map((photo, index) => (
-          <motion.div
-            key={photo.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            viewport={{ once: true }}
-            className="relative overflow-hidden rounded-2xl shadow-md group cursor-pointer"
-            onClick={() => setSelectedImage(photo)}
-          >
-            <img
-              src={photo.src}
-              alt={photo.alt}
-              className="w-full h-full object-cover transform group-hover:scale-105 transition duration-300"
-            />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
-              <p className="text-white text-lg font-medium">{photo.alt}</p>
-            </div>
-          </motion.div>
-        ))}
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-2xl mx-auto flex flex-col gap-6"
+    >
+      {/* Dropzone */}
+      <div
+        onClick={() => fileInputRef.current?.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        className="border-2 border-dashed border-gray-400 p-6 text-center rounded-lg cursor-pointer bg-white hover:border-black transition"
+      >
+        <p className="text-gray-500">
+          Glisse ici plusieurs images ou clique pour en sélectionner
+        </p>
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={(e) => handleFiles(e.target.files)}
+          className="hidden"
+        />
       </div>
 
-      <AnimatePresence>
-        {selectedImage && (
-          <motion.div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[999]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedImage(null)}
-          >
-            <motion.div
-              className="relative max-w-3xl w-full mx-4"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                className="absolute top-2 right-2 bg-white text-black p-2 rounded-full z-10"
-                onClick={() => setSelectedImage(null)}
-              >
-                <X size={20} />
-              </button>
+      {/* Previews */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {images.map((img, index) => (
+            <div key={index} className="relative border rounded-lg p-2">
               <img
-                src={selectedImage.src}
-                alt={selectedImage.alt}
-                className="rounded-xl w-full h-auto object-contain"
+                src={img.preview}
+                alt={`preview-${index}`}
+                className="w-full h-auto object-contain rounded mb-2"
               />
-              <p className="text-white text-center mt-4 text-lg">
-                {selectedImage.alt}
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
+              <input
+                type="text"
+                placeholder="Description"
+                value={img.alt}
+                onChange={(e) => handleAltChange(index, e.target.value)}
+                className="border p-2 rounded w-full"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 text-sm"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Bouton submit */}
+      {images.length > 0 && (
+        <button
+          type="submit"
+          className="bg-black text-white py-2 rounded hover:bg-gray-800"
+        >
+          Ajouter {images.length} image{images.length > 1 ? "s" : ""}
+        </button>
+      )}
+    </form>
   );
 }
