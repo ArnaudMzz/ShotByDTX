@@ -7,7 +7,7 @@ type ImageToUpload = {
 };
 
 type Props = {
-  onNewImage: (image: { id: number; src: string; alt: string }) => void;
+  onNewImage: (image: { id: string; src: string; alt: string }) => void;
 };
 
 export default function AjouterImageForm({ onNewImage }: Props) {
@@ -48,16 +48,28 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       formData.append("image", img.file);
       formData.append("alt", img.alt);
 
-      const res = await fetch(`${API_URL}/api/images`, {
-        method: "POST",
-        body: formData,
-      });
+      try {
+        const res = await fetch(`${API_URL}/api/images`, {
+          method: "POST",
+          body: formData,
+        });
 
-      const newImage = await res.json();
-      onNewImage({
-        ...newImage,
-        src: `${API_URL}${newImage.src}`,
-      });
+        if (!res.ok) {
+          const msg = await res.text();
+          console.error("❌ Erreur serveur:", msg);
+          continue;
+        }
+
+        const newImage = await res.json();
+
+        onNewImage({
+          id: newImage._id,
+          alt: newImage.alt,
+          src: `${API_URL}${newImage.src}`,
+        });
+      } catch (err) {
+        console.error("❌ Erreur fetch:", err);
+      }
     }
 
     setImages([]);
@@ -78,6 +90,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       onSubmit={handleSubmit}
       className="max-w-2xl mx-auto flex flex-col gap-6"
     >
+      {/* Dropzone */}
       <div
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
@@ -97,6 +110,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
         />
       </div>
 
+      {/* Previews */}
       {images.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {images.map((img, index) => (
@@ -126,6 +140,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
         </div>
       )}
 
+      {/* Bouton submit */}
       {images.length > 0 && (
         <button
           type="submit"
