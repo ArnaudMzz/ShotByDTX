@@ -15,11 +15,19 @@ export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState<Photo | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/images`)
+    fetch(`${API_URL}/api/images`)
       .then((res) => res.json())
-      .then((data) => setPhotos(data.reverse())); // plus récentes d'abord
-  }, []);
+      .then((data) => {
+        const images = data.map((img: any) => ({
+          ...img,
+          src: `${API_URL}${img.src}`,
+        }));
+        setPhotos(images);
+      });
+  }, [API_URL]);
 
   const totalPages = Math.ceil(photos.length / IMAGES_PER_PAGE);
   const startIndex = (currentPage - 1) * IMAGES_PER_PAGE;
