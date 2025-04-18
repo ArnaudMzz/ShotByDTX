@@ -1,6 +1,12 @@
 // src/components/AddImageForm.tsx
 import { useEffect, useRef, useState } from "react";
 
+function cleanUrl(path: string) {
+  const base = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+  const final = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${final}`;
+}
+
 type ImageToUpload = {
   file: File;
   preview: string;
@@ -14,7 +20,6 @@ type Props = {
 export default function AjouterImageForm({ onNewImage }: Props) {
   const [images, setImages] = useState<ImageToUpload[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     return () => {
@@ -50,7 +55,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       formData.append("alt", img.alt);
 
       try {
-        const res = await fetch(`${API_URL}/api/images`, {
+        const res = await fetch(cleanUrl(`/api/images`), {
           method: "POST",
           body: formData,
         });

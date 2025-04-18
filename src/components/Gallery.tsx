@@ -4,6 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import AjouterImageForm from "./AddImageForm";
 
+function cleanUrl(path: string) {
+  const base = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+  const final = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${final}`;
+}
+
 type Photo = {
   id: string;
   src: string;
@@ -23,7 +29,7 @@ export default function Gallery() {
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetch(`${API_URL}/api/images`)
+    fetch(cleanUrl(`/api/images`))
       .then((res) => res.json())
       .then((data: ApiImage[]) => {
         const updated = data.map((img) => ({
