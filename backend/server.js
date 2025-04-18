@@ -60,7 +60,7 @@ app.post("/api/images", upload.single("image"), async (req, res) => {
     console.log("📝 Body:", req.body);
 
     const newImage = new Image({
-      src: req.file.path,
+      src: req.file?.path, // ✅ Cloudinary URL
       alt: req.body.alt,
     });
 
