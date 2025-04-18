@@ -55,16 +55,10 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       formData.append("alt", img.alt);
 
       try {
-        const res = await fetch(cleanUrl(`/api/images`), {
+        const res = await fetch(cleanUrl("/api/images"), {
           method: "POST",
           body: formData,
         });
-
-        if (!res.ok) {
-          const msg = await res.text();
-          console.error("❌ Erreur serveur:", msg);
-          continue;
-        }
 
         const newImage = await res.json();
 

@@ -59,8 +59,12 @@ app.post("/api/images", upload.single("image"), async (req, res) => {
     console.log("📸 File:", req.file);
     console.log("📝 Body:", req.body);
 
+    if (!req.file?.path) {
+      return res.status(400).json({ error: "Image non uploadée" });
+    }
+
     const newImage = new Image({
-      src: req.file?.path, // ✅ Cloudinary URL
+      src: req.file.path, // ✅ URL Cloudinary ici
       alt: req.body.alt,
     });
 
