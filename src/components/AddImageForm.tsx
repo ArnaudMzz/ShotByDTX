@@ -13,15 +13,14 @@ type Props = {
 export default function AjouterImageForm({ onNewImage }: Props) {
   const [images, setImages] = useState<ImageToUpload[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  // Génère les previews
   useEffect(() => {
     return () => {
       images.forEach((img) => URL.revokeObjectURL(img.preview));
     };
   }, [images]);
 
-  // Handle file drop or selection
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
 
@@ -49,16 +48,18 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       formData.append("image", img.file);
       formData.append("alt", img.alt);
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/images`, {
+      const res = await fetch(`${API_URL}/api/images`, {
         method: "POST",
         body: formData,
       });
 
       const newImage = await res.json();
-      onNewImage(newImage);
+      onNewImage({
+        ...newImage,
+        src: `${API_URL}${newImage.src}`,
+      });
     }
 
-    // Reset form
     setImages([]);
   };
 
@@ -77,7 +78,6 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       onSubmit={handleSubmit}
       className="max-w-2xl mx-auto flex flex-col gap-6"
     >
-      {/* Dropzone */}
       <div
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
@@ -97,7 +97,6 @@ export default function AjouterImageForm({ onNewImage }: Props) {
         />
       </div>
 
-      {/* Previews */}
       {images.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {images.map((img, index) => (
