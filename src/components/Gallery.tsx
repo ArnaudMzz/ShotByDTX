@@ -1,3 +1,4 @@
+// src/components/Gallery.tsx
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -44,11 +45,7 @@ export default function Gallery() {
         onNewImage={(img) =>
           setPhotos((prev) => [
             ...prev,
-            {
-              id: img.id,
-              alt: img.alt,
-              src: `${API_URL}${img.src}`, // ✅ même logique ici
-            },
+            { id: img.id, alt: img.alt, src: img.src },
           ])
         }
       />
