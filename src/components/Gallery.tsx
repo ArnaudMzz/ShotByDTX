@@ -9,27 +9,20 @@ type Photo = {
   alt: string;
 };
 
-type ApiImage = {
-  _id: string;
-  src: string;
-  alt: string;
-};
-
 export default function Gallery() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedImage, setSelectedImage] = useState<Photo | null>(null);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // 🔁 Chargement des images depuis l’API
   useEffect(() => {
     fetch(`${API_URL}/api/images`)
       .then((res) => res.json())
-      .then((data: ApiImage[]) => {
+      .then((data: any[]) => {
         const updated = data.map((img) => ({
           id: img._id,
           alt: img.alt,
-          src: `${API_URL}${img.src}`,
+          src: `${API_URL}${img.src}`, // ✅ URL complète reconstruite
         }));
         setPhotos(updated);
       });
@@ -46,9 +39,9 @@ export default function Gallery() {
           setPhotos((prev) => [
             ...prev,
             {
-              id: img.id.toString(),
+              id: img.id,
               alt: img.alt,
-              src: `${API_URL}${img.src}`,
+              src: `${API_URL}${img.src}`, // ✅ même logique ici
             },
           ])
         }
