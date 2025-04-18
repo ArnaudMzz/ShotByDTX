@@ -65,7 +65,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
         onNewImage({
           id: newImage._id,
           alt: newImage.alt,
-          src: `${API_URL}${newImage.src}`,
+          src: newImage.src, // ✅ pas besoin de concaténer
         });
       } catch (err) {
         console.error("❌ Erreur fetch:", err);
