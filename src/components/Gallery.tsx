@@ -16,7 +16,7 @@ export default function Gallery() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/images")
+    fetch(`${import.meta.env.VITE_API_URL}/api/images`)
       .then((res) => res.json())
       .then((data) => setPhotos(data.reverse())); // plus récentes d'abord
   }, []);

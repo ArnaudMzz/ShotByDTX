@@ -49,7 +49,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       formData.append("image", img.file);
       formData.append("alt", img.alt);
 
-      const res = await fetch("http://localhost:3001/api/images", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/images`, {
         method: "POST",
         body: formData,
       });
