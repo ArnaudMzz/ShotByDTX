@@ -26,10 +26,8 @@ export default function Gallery() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedImage, setSelectedImage] = useState<Photo | null>(null);
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   useEffect(() => {
-    fetch(cleanUrl(`/api/images`))
+    fetch(cleanUrl("/api/images"))
       .then((res) => res.json())
       .then((data: ApiImage[]) => {
         const updated = data.map((img) => ({
@@ -39,7 +37,7 @@ export default function Gallery() {
         }));
         setPhotos(updated);
       });
-  }, [API_URL]);
+  }, []);
 
   return (
     <section className="bg-white dark:bg-gray-950 py-12 px-6">
