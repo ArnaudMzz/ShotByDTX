@@ -1,79 +1,69 @@
-// backend/server.js
-require("dotenv").config();
+// server.js (version locale sans MongoDB ni Cloudinary)
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const cloudinary = require("cloudinary").v2;
+const path = require("path");
+const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Config Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Créer dossier uploads si inexistant
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
-// Stockage avec multer + cloudinary
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "shotbydtx",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+// Stockage local
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = `${Date.now()}-${file.originalname}`;
+    cb(null, uniqueName);
   },
 });
 const upload = multer({ storage });
 
-// MongoDB connect
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Connecté à MongoDB"))
-  .catch((err) => console.error("❌ MongoDB error", err));
+// Sauvegarde "en mémoire" dans un fichier JSON
+const DATA_FILE = path.join(__dirname, "images.json");
+let images = [];
 
-// Schéma d'image
-const ImageSchema = new mongoose.Schema({
-  src: String,
-  alt: String,
-});
-const Image = mongoose.model("Image", ImageSchema);
+if (fs.existsSync(DATA_FILE)) {
+  images = JSON.parse(fs.readFileSync(DATA_FILE));
+}
 
-// Routes
-app.get("/", (req, res) => {
-  res.send("🚀 API ShotByDTX avec Cloudinary");
-});
+function saveImagesToFile() {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(images, null, 2));
+}
 
-app.get("/api/images", async (req, res) => {
-  const images = await Image.find().sort({ _id: -1 });
+app.get("/api/images", (req, res) => {
   res.json(images);
 });
 
-app.post("/api/images", upload.single("image"), async (req, res) => {
-  try {
-    console.log("✅ POST /api/images");
-    console.log("📸 File:", req.file);
-    console.log("📝 Body:", req.body);
+app.post("/api/images", upload.single("image"), (req, res) => {
+  const file = req.file;
+  const alt = req.body.alt;
 
-    if (!req.file?.path) {
-      return res.status(400).json({ error: "Image non uploadée" });
-    }
-
-    const newImage = new Image({
-      src: req.file.path, // ✅ URL Cloudinary ici
-      alt: req.body.alt,
-    });
-
-    await newImage.save();
-    res.status(201).json(newImage);
-  } catch (err) {
-    console.error("❌ Upload error:", err);
-    res.status(500).json({ error: "Upload failed" });
+  if (!file || !alt) {
+    return res.status(400).json({ error: "Image et alt requis" });
   }
+
+  const image = {
+    id: Date.now().toString(),
+    src: `/uploads/${file.filename}`,
+    alt,
+  };
+
+  images.unshift(image); // Ajouter en haut de la liste
+  saveImagesToFile();
+
+  res.status(201).json(image);
 });
 
 app.listen(PORT, () => {

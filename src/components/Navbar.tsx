@@ -11,36 +11,35 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-md bg-black bg-opacity-0 sticky top-0 z-50">
+    <nav className=" shadow-md sticky top-0 z-50 transition-colors">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-white-800 dark:text-white">
-          <Link to="/" className="hover:text-black dark:hover:text-white">
+        <h2 className="text-xl font-bold text-primary dark:text-primary">
+          <Link to="/" className="hover:opacity-80">
             ShotByDTX
           </Link>
         </h2>
-
         {/* Desktop Menu */}
-        <ul className="hidden text-xl md:flex gap-6 text-white dark:text-gray-300">
+        <ul className="hidden text-xl md:flex gap-6 text-gray-900 dark:text-gray-300">
           <li>
-            <Link to="/" className="hover:text-black dark:hover:text-white">
+            <Link to="/" className="hover:text-primary dark:hover:text-primary">
               Accueil
             </Link>
           </li>
           <li>
             <Link
               to="/galerie"
-              className="hover:text-black dark:hover:text-white"
+              className="hover:text-primary dark:hover:text-primary"
             >
               Galerie
             </Link>
           </li>
           <li>
-            <a
-              href="#contact"
-              className="hover:text-black dark:hover:text-white"
+            <Link
+              to="/contact"
+              className="hover:text-primary dark:hover:text-primary"
             >
               Contact
-            </a>
+            </Link>
           </li>
         </ul>
 
@@ -63,15 +62,33 @@ export default function Navbar() {
             transition={{ duration: 0.3 }}
             className="md:hidden px-6 overflow-hidden"
           >
-            <ul className="flex flex-col gap-4 pb-4 text-gray-600 dark:text-gray-300">
-              <li className="hover:text-black dark:hover:text-white cursor-pointer">
-                Accueil
+            <ul className="flex flex-col gap-4 pb-4 text-gray-700 dark:text-gray-300">
+              <li>
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-primary dark:hover:text-primary"
+                >
+                  Accueil
+                </Link>
               </li>
-              <li className="hover:text-black dark:hover:text-white cursor-pointer">
-                Portfolio
+              <li>
+                <Link
+                  to="/galerie"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-primary dark:hover:text-primary"
+                >
+                  Galerie
+                </Link>
               </li>
-              <li className="hover:text-black dark:hover:text-white cursor-pointer">
-                Contact
+              <li>
+                <Link
+                  to="/contact"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-primary dark:hover:text-primary"
+                >
+                  Contact
+                </Link>
               </li>
             </ul>
           </motion.div>

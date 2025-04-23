@@ -1,11 +1,5 @@
-// src/components/AddImageForm.tsx
+// src/components/AjouterImageForm.tsx
 import { useEffect, useRef, useState } from "react";
-
-function cleanUrl(path: string) {
-  const base = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
-  const final = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${final}`;
-}
 
 type ImageToUpload = {
   file: File;
@@ -20,6 +14,7 @@ type Props = {
 export default function AjouterImageForm({ onNewImage }: Props) {
   const [images, setImages] = useState<ImageToUpload[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const API_URL = "http://localhost:3001";
 
   useEffect(() => {
     return () => {
@@ -55,17 +50,22 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       formData.append("alt", img.alt);
 
       try {
-        const res = await fetch(cleanUrl("/api/images"), {
+        const res = await fetch(`${API_URL}/api/images`, {
           method: "POST",
           body: formData,
         });
 
-        const newImage = await res.json();
+        if (!res.ok) {
+          const msg = await res.text();
+          console.error("❌ Erreur serveur:", msg);
+          continue;
+        }
 
+        const newImage = await res.json();
         onNewImage({
-          id: newImage._id,
+          id: newImage.id,
           alt: newImage.alt,
-          src: newImage.src,
+          src: `${API_URL}${newImage.src}`,
         });
       } catch (err) {
         console.error("❌ Erreur fetch:", err);
@@ -90,7 +90,6 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       onSubmit={handleSubmit}
       className="max-w-2xl mx-auto flex flex-col gap-6"
     >
-      {/* Dropzone */}
       <div
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
@@ -110,7 +109,6 @@ export default function AjouterImageForm({ onNewImage }: Props) {
         />
       </div>
 
-      {/* Previews */}
       {images.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {images.map((img, index) => (
@@ -140,7 +138,6 @@ export default function AjouterImageForm({ onNewImage }: Props) {
         </div>
       )}
 
-      {/* Bouton submit */}
       {images.length > 0 && (
         <button
           type="submit"
