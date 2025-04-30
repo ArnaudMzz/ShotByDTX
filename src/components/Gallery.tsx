@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-// import AjouterImageForm from "./AddImageForm";
 
 interface Photo {
   id: string;
@@ -15,6 +14,17 @@ export default function Gallery() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const photosPerPage: number = 15;
   const API_URL = import.meta.env.VITE_API_URL;
+
+  const authFetch = (url: string, options: RequestInit = {}) => {
+    const token = localStorage.getItem("authToken");
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  };
 
   useEffect(() => {
     fetch(`${API_URL}/api/images`)
@@ -33,6 +43,26 @@ export default function Gallery() {
   const totalPages = Math.ceil(photos.length / photosPerPage);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Supprimer cette image ?")) return;
+
+    try {
+      const res = await authFetch(`${API_URL}/api/images/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setPhotos((prev) => prev.filter((img) => img.id !== id));
+        setSelectedImage(null);
+      } else {
+        alert("Erreur lors de la suppression");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erreur réseau");
+    }
+  };
 
   return (
     <section className="bg-white dark:bg-gray-950 py-12 px-6">
@@ -95,7 +125,6 @@ export default function Gallery() {
               transition={{ duration: 0.3 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Image + Close button container */}
               <div className="relative w-fit max-h-[90vh]">
                 <img
                   src={`${API_URL}${selectedImage.src}`}
@@ -108,6 +137,14 @@ export default function Gallery() {
                 >
                   <X size={20} />
                 </button>
+                {localStorage.getItem("authToken") && (
+                  <button
+                    className="absolute bottom-2 right-2 bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
+                    onClick={() => handleDelete(selectedImage.id)}
+                  >
+                    Supprimer
+                  </button>
+                )}
               </div>
             </motion.div>
           </motion.div>

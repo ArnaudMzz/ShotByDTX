@@ -1,4 +1,3 @@
-// src/components/AjouterImageForm.tsx
 import { useEffect, useRef, useState } from "react";
 
 type ImageToUpload = {
@@ -41,6 +40,18 @@ export default function AjouterImageForm({ onNewImage }: Props) {
     handleFiles(e.dataTransfer.files);
   };
 
+  // 🔐 fetch avec token pour formulaire
+  const authFetchFormData = (url: string, formData: FormData) => {
+    const token = localStorage.getItem("authToken");
+    return fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -50,10 +61,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       formData.append("alt", img.alt);
 
       try {
-        const res = await fetch(`${API_URL}/api/images`, {
-          method: "POST",
-          body: formData,
-        });
+        const res = await authFetchFormData(`${API_URL}/api/images`, formData);
 
         if (!res.ok) {
           const msg = await res.text();

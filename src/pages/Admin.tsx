@@ -13,21 +13,35 @@ interface Photo {
 export default function Admin() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const API_URL = import.meta.env.VITE_API_URL;
-
   const navigate = useNavigate();
 
+  // Fonction utilitaire pour fetch avec token
+  const authFetch = (url: string, options: RequestInit = {}) => {
+    const token = localStorage.getItem("authToken");
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  };
+
+  // Déconnexion
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     navigate("/login");
   };
 
+  // Vérifie la présence du token au chargement
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    if (token !== "1234") {
+    if (!token) {
       navigate("/login");
     }
   }, [navigate]);
 
+  // Récupération des images
   useEffect(() => {
     fetch(`${API_URL}/api/images`)
       .then((res) => res.json())
@@ -37,23 +51,27 @@ export default function Admin() {
       });
   }, [API_URL]);
 
+  // Suppression sécurisée
   const handleDelete = async (id: string) => {
-    const confirm = window.confirm("Supprimer cette image ?");
-    if (!confirm) return;
+    const confirmDelete = window.confirm("Supprimer cette image ?");
+    if (!confirmDelete) return;
 
-    console.log("➡️ Tentative de suppression ID:", id);
+    try {
+      const res = await authFetch(`${API_URL}/api/images/${id}`, {
+        method: "DELETE",
+      });
 
-    const res = await fetch(`${API_URL}/api/images/${id}`, {
-      method: "DELETE",
-    });
-
-    if (!res.ok) {
-      const error = await res.text();
-      console.error("❌ Erreur serveur :", error);
-      alert("Erreur lors de la suppression.");
-    } else {
-      setPhotos((prev) => prev.filter((img) => img.id !== id));
-      console.log("✅ Supprimée !");
+      if (!res.ok) {
+        const error = await res.text();
+        console.error("❌ Erreur serveur :", error);
+        alert("Erreur lors de la suppression.");
+      } else {
+        setPhotos((prev) => prev.filter((img) => img.id !== id));
+        console.log("✅ Image supprimée !");
+      }
+    } catch (err) {
+      console.error("❌ Erreur réseau :", err);
+      alert("Erreur réseau.");
     }
   };
 

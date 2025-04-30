@@ -6,6 +6,10 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    navigate("/login");
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
