@@ -41,9 +41,11 @@ let images = fs.existsSync(DATA_FILE)
   ? JSON.parse(fs.readFileSync(DATA_FILE))
   : [];
 
-function saveImagesToFile() {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(images, null, 2));
-}
+  function saveImagesToFile() {
+    console.log("✅ Sauvegarde images dans images.json :", images);
+    fs.writeFileSync(DATA_FILE, JSON.stringify(images, null, 2));
+  }
+  
 
 // Middleware JWT
 function verifyToken(req, res, next) {
@@ -68,22 +70,27 @@ app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
   const file = req.file;
   const alt = req.body.alt;
 
+  console.log("✅ Image reçue :", file);  // Log de l'image
+  console.log("✅ Alt reçu :", alt);     // Log de l'alt
+
   if (!file || !alt) {
     return res.status(400).json({ error: "Image et alt requis" });
   }
 
-  // ✅ L'URL Cloudinary renvoyée après l'upload
   const image = {
     id: Date.now().toString(),
-    src: file.path,  // L'URL Cloudinary générée automatiquement
+    src: file.path, // URL générée par Cloudinary
     alt,
   };
+
+  console.log("✅ Image à sauvegarder :", image);  // Log de l'image à enregistrer
 
   images.unshift(image);
   saveImagesToFile();
 
   res.status(201).json(image);
 });
+
 
 // 🗑️ DELETE - Supprimer une image (de Cloudinary + du fichier local si nécessaire)
 app.delete("/api/images/:id", verifyToken, (req, res) => {

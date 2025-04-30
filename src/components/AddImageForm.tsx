@@ -57,8 +57,8 @@ export default function AjouterImageForm({ onNewImage }: Props) {
 
     for (const img of images) {
       const formData = new FormData();
-      formData.append("image", img.file);
-      formData.append("alt", img.alt);
+      formData.append("image", img.file); // L'image
+      formData.append("alt", img.alt); // Le texte alternatif
 
       try {
         const res = await authFetchFormData(`${API_URL}/api/images`, formData);
