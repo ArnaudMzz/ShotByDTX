@@ -13,6 +13,7 @@ interface Photo {
 export default function Admin() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const API_URL = import.meta.env.VITE_API_URL;
+
   const navigate = useNavigate();
 
   const handleLogout = () => {

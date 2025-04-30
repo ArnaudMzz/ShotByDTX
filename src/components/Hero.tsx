@@ -6,6 +6,7 @@ export default function HeroImage() {
 
   useEffect(() => {
     const root = window.document.documentElement;
+
     const observer = new MutationObserver(() => {
       setTheme(root.classList.contains("dark") ? "dark" : "light");
     });

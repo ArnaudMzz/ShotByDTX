@@ -14,7 +14,6 @@ export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState<Photo | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const photosPerPage: number = 15;
-
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
