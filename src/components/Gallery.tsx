@@ -64,7 +64,7 @@ export default function Gallery() {
     }
   };
   console.log("📸 Photos reçues :", photos);
-
+  console.log("📸 Photos affichées :", currentPhotos);
   return (
     <section className="bg-white dark:bg-gray-950 py-12 px-6">
       <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 text-gray-800 dark:text-white">
