@@ -4,7 +4,6 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -42,6 +41,8 @@ function saveImagesToFile() {
   fs.writeFileSync(DATA_FILE, JSON.stringify(images, null, 2));
 }
 
+// ROUTES
+
 app.get("/api/images", (req, res) => {
   res.json(images);
 });
@@ -65,6 +66,44 @@ app.post("/api/images", upload.single("image"), (req, res) => {
 
   res.status(201).json(image);
 });
+
+app.delete("/api/images/:id", (req, res) => {
+  const id = req.params.id;
+  const imageToDelete = images.find((img) => img.id === id);
+
+  if (!imageToDelete) {
+    return res.status(404).json({ error: "Image introuvable" });
+  }
+
+  // Supprimer le fichier image
+  const imagePath = path.join(__dirname, imageToDelete.src);
+  fs.unlink(imagePath, (err) => {
+    if (err) {
+      console.warn("⚠️ Fichier image non trouvé ou déjà supprimé :", err.message);
+    }
+  });
+
+  // Met à jour en mémoire et dans le fichier
+  images = images.filter((img) => img.id !== id);
+  saveImagesToFile();
+
+  res.status(200).json({ success: true });
+});
+
+const ADMIN_USERNAME = "DavidTx";
+const ADMIN_PASSWORD = "nono";
+
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    // On retourne un token fake (ex: "1234")
+    return res.json({ token: "1234" });
+  }
+
+  res.status(401).json({ error: "Identifiants invalides" });
+});
+
 
 app.listen(PORT, () => {
   console.log(`✅ Serveur démarré sur http://localhost:${PORT}`);

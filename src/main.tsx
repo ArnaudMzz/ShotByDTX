@@ -6,6 +6,7 @@ import Galerie from "./pages/Galerie.tsx";
 import "./index.css";
 import Admin from "./pages/Admin.tsx";
 import Contact from "./pages/Contact.tsx";
+import Login from "./pages/Login.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -15,6 +16,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<App />} />
         <Route path="/admin" element={<Admin />} />;
         <Route path="/galerie" element={<Galerie />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

@@ -1,53 +1,110 @@
-// src/pages/Admin.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AjouterImageForm from "../components/AddImageForm";
+import { Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
+
+interface Photo {
+  id: string;
+  src: string;
+  alt: string;
+}
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [password, setPassword] = useState("");
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const API_URL = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === "nono") {
-      setIsLoggedIn(true);
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token !== "1234") {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/images`)
+      .then((res) => res.json())
+      .then((data: Photo[]) => {
+        const sorted = data.sort((a, b) => (a.id < b.id ? 1 : -1));
+        setPhotos(sorted);
+      });
+  }, [API_URL]);
+
+  const handleDelete = async (id: string) => {
+    const confirm = window.confirm("Supprimer cette image ?");
+    if (!confirm) return;
+
+    console.log("➡️ Tentative de suppression ID:", id);
+
+    const res = await fetch(`${API_URL}/api/images/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const error = await res.text();
+      console.error("❌ Erreur serveur :", error);
+      alert("Erreur lors de la suppression.");
     } else {
-      alert("Mot de passe incorrect");
+      setPhotos((prev) => prev.filter((img) => img.id !== id));
+      console.log("✅ Supprimée !");
     }
   };
 
   return (
-    <section className="min-h-screen bg-white dark:bg-gray-950 text-center py-20 px-4">
-      {!isLoggedIn ? (
-        <form
-          onSubmit={handleLogin}
-          className="max-w-md mx-auto flex flex-col gap-4"
-        >
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-            Connexion Admin
-          </h2>
-          <input
-            type="password"
-            placeholder="Mot de passe"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border p-2 rounded"
-            required
-          />
+    <section className="py-12 px-6 bg-white dark:bg-gray-950 min-h-screen text-gray-900 dark:text-white">
+      <div className="relative mb-10">
+        <h1 className="text-3xl font-bold text-center text-primary">
+          Panneau d’administration
+        </h1>
+
+        <div className="mt-4 sm:mt-0 sm:absolute sm:top-1/2 sm:right-0 sm:-translate-y-1/2">
           <button
-            type="submit"
-            className="bg-black text-white py-2 rounded hover:bg-gray-800"
+            onClick={handleLogout}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition w-full sm:w-auto"
           >
-            Se connecter
+            Se déconnecter
           </button>
-        </form>
-      ) : (
-        <>
-          <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
-            Ajouter une image 📸
-          </h2>
-          <AjouterImageForm onNewImage={() => {}} />
-        </>
-      )}
+        </div>
+      </div>
+
+      <AjouterImageForm
+        onNewImage={(img) =>
+          setPhotos((prev) => [
+            { id: img.id, alt: img.alt, src: img.src },
+            ...prev,
+          ])
+        }
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-12">
+        {photos.map((photo) => (
+          <div
+            key={photo.id}
+            className="relative group overflow-hidden rounded-lg shadow-md"
+          >
+            <img
+              src={`${API_URL}${photo.src}`}
+              alt={photo.alt}
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex justify-center items-center">
+              <button
+                onClick={() => handleDelete(photo.id)}
+                className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <ThemeToggle />
     </section>
   );
 }

@@ -51,7 +51,7 @@ export default function Contact() {
                 <strong>📍 Tu te déplaces ?</strong> Oui, sur Lyon et alentours.
               </li>
               <li>
-                <strong>💬 Combien de temps pour les retouches ?</strong>{" "}
+                <strong>💬 Combien de temps pour les retouches ?</strong>
                 Environ 48h.
               </li>
             </ul>
@@ -75,7 +75,7 @@ export default function Contact() {
               required
             />
             <textarea
-              placeholder="Ton message"
+              placeholder="Votre message"
               rows={5}
               className="w-full px-4 py-2 rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
               required
