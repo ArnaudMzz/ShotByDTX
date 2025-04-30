@@ -1,15 +1,18 @@
-import { useState } from "react";
-import ThemeToggle from "../components/ThemeToggle";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import ThemeToggle from "../components/ThemeToggle";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const token = localStorage.getItem("authToken");
-  if (!token) {
-    navigate("/login");
-  }
+
+  useEffect(() => {
+    // Si l'utilisateur est déjà connecté, le rediriger vers /admin
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      navigate("/admin");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +26,7 @@ export default function Login() {
     if (res.ok) {
       const { token } = await res.json();
       localStorage.setItem("authToken", token);
-      navigate("/admin");
+      navigate("/admin"); // Rediriger vers /admin après login
     } else {
       alert("Identifiants invalides");
     }

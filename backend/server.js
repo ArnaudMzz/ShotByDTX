@@ -70,8 +70,8 @@ app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
   const file = req.file;
   const alt = req.body.alt;
 
-  console.log("✅ Image reçue :", file);  // Log de l'image
-  console.log("✅ Alt reçu :", alt);     // Log de l'alt
+  console.log("📸 Fichier reçu :", file);
+  console.log("📝 Texte alternatif reçu :", alt);
 
   if (!file || !alt) {
     return res.status(400).json({ error: "Image et alt requis" });
@@ -79,11 +79,11 @@ app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
 
   const image = {
     id: Date.now().toString(),
-    src: file.path, // URL générée par Cloudinary
+    src: file.path,
     alt,
   };
 
-  console.log("✅ Image à sauvegarder :", image);  // Log de l'image à enregistrer
+  console.log("✅ Image à enregistrer :", image);
 
   images.unshift(image);
   saveImagesToFile();
