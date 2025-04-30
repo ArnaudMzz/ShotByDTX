@@ -33,6 +33,7 @@ const storage = new CloudinaryStorage({
     transformation: [{ width: 1200, crop: "limit" }],
   },
 });
+
 const upload = multer({ storage });
 
 // DB fichier JSON
@@ -71,12 +72,12 @@ app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
   if (!file || !alt) {
     return res.status(400).json({ error: "Image et alt requis" });
   }
-
   const image = {
     id: Date.now().toString(),
-    src: file.path, // URL Cloudinary !
+    src: file.path, // ✅ URL Cloudinary
     alt,
   };
+  
 
   images.unshift(image);
   saveImagesToFile();

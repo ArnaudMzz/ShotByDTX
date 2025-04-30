@@ -108,7 +108,7 @@ export default function Admin() {
             className="relative group overflow-hidden rounded-lg shadow-md"
           >
             <img
-              src={`${API_URL}${photo.src}`}
+              src={photo.src}
               alt={photo.alt}
               className="w-full h-64 object-cover"
             />

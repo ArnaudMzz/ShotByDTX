@@ -63,6 +63,7 @@ export default function Gallery() {
       alert("Erreur réseau");
     }
   };
+  console.log("📸 Photos reçues :", photos);
 
   return (
     <section className="bg-white dark:bg-gray-950 py-12 px-6">
@@ -81,7 +82,7 @@ export default function Gallery() {
             onClick={() => setSelectedImage(photo)}
           >
             <img
-              src={`${API_URL}${photo.src}`}
+              src={photo.src}
               alt={photo.alt}
               className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
             />
