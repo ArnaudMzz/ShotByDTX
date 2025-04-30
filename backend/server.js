@@ -28,12 +28,11 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "shotbydtx",
+    folder: "shotbydtx", // Le dossier où les images seront stockées sur Cloudinary
     allowed_formats: ["jpg", "png", "jpeg", "webp"],
     transformation: [{ width: 1200, crop: "limit" }],
   },
 });
-
 const upload = multer({ storage });
 
 // DB fichier JSON
@@ -72,12 +71,13 @@ app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
   if (!file || !alt) {
     return res.status(400).json({ error: "Image et alt requis" });
   }
+
+  // ✅ L'URL Cloudinary renvoyée après l'upload
   const image = {
     id: Date.now().toString(),
-    src: file.path, // ✅ URL Cloudinary
+    src: file.path,  // L'URL Cloudinary générée automatiquement
     alt,
   };
-  
 
   images.unshift(image);
   saveImagesToFile();
@@ -85,19 +85,30 @@ app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
   res.status(201).json(image);
 });
 
-// 🗑️ DELETE - Supprimer une image
+// 🗑️ DELETE - Supprimer une image (de Cloudinary + du fichier local si nécessaire)
 app.delete("/api/images/:id", verifyToken, (req, res) => {
   const id = req.params.id;
   const imageToDelete = images.find((img) => img.id === id);
+
   if (!imageToDelete) return res.status(404).json({ error: "Image introuvable" });
 
-  // (Optionnel) Extraire l'ID Cloudinary pour supprimer là-bas aussi
-  // const publicId = imageToDelete.src.split("/").pop().split(".")[0];
+  // Extraire l'ID public de Cloudinary pour supprimer l'image là-bas
+  const publicId = imageToDelete.src.split("/").pop().split(".")[0];
 
-  images = images.filter((img) => img.id !== id);
-  saveImagesToFile();
+  // Supprimer de Cloudinary
+  cloudinary.uploader.destroy(publicId, (err, result) => {
+    if (err) {
+      console.error("❌ Erreur lors de la suppression de l'image Cloudinary :", err);
+      return res.status(500).json({ error: "Erreur Cloudinary" });
+    }
+    console.log("✅ Image supprimée de Cloudinary :", result);
 
-  res.status(200).json({ success: true });
+    // Supprimer de la liste locale (JSON)
+    images = images.filter((img) => img.id !== id);
+    saveImagesToFile();
+
+    res.status(200).json({ success: true });
+  });
 });
 
 // 🔐 Login admin
