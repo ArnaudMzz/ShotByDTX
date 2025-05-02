@@ -72,18 +72,24 @@ app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
   const file = req.file;
   const alt = req.body.alt;
 
+  // Log des informations du fichier pour déboguer
+  console.log("Fichier reçu:", file);
+
   if (!file || !alt) {
     return res.status(400).json({ error: "Image et alt requis" });
   }
 
+  // Crée l'objet image à sauvegarder
   const image = {
     id: Date.now().toString(),
-    src: file.path, // URL Cloudinary
+    src: file.path,  // URL de Cloudinary ou chemin local
     alt,
   };
 
-  images.unshift(image); // Ajoute l'image en haut de la liste
+  images.unshift(image);  // Ajoute l'image en haut de la liste
   saveImagesToFile();
+
+  console.log("Image enregistrée:", image);
 
   res.status(201).json(image);
 });
