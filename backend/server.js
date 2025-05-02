@@ -2,15 +2,13 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
-const jwt = require("jsonwebtoken");
-const fs = require("fs");
 const path = require("path");
+const fs = require("fs");
+const jwt = require("jsonwebtoken");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
-
-// Utilisation du port dynamique sur Render ou 3001 en local
 const PORT = process.env.PORT || 3001;
 
 // CORS autorise ton front local et Netlify
@@ -18,7 +16,7 @@ const allowedOrigins = ["http://localhost:5173", "https://shotbydtx.netlify.app"
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
-// Cloudinary configuration
+// Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -29,9 +27,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "shotbydtx",  // Folder name in Cloudinary
-    allowed_formats: ["jpg", "png", "jpeg", "webp"],  // Allowed formats
-    transformation: [{ width: 1200, crop: "limit" }],  // Resize images
+    folder: "shotbydtx",
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+    transformation: [{ width: 1200, crop: "limit" }],
   },
 });
 
@@ -50,7 +48,7 @@ function saveImagesToFile() {
 // Middleware JWT
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // "Bearer token"
+  const token = authHeader && authHeader.split(" ")[1];
   if (!token) return res.status(401).json({ error: "Token manquant" });
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -60,36 +58,27 @@ function verifyToken(req, res, next) {
   });
 }
 
-// Routes
-
-// 🔓 Route publique - Récupérer les images
+// 📷 GET - Liste des images (publique)
 app.get("/api/images", (req, res) => {
   res.json(images);
 });
 
-// 🔐 Route protégée - Upload image
+// 📤 POST - Upload image (admin uniquement)
 app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
   const file = req.file;
   const alt = req.body.alt;
 
-  // Log des informations du fichier pour déboguer
-  console.log("Fichier reçu:", file);
-
   if (!file || !alt) {
     return res.status(400).json({ error: "Image et alt requis" });
   }
-
-  // Crée l'objet image à sauvegarder
   const image = {
     id: Date.now().toString(),
-    src: file.path,  // URL de Cloudinary ou chemin local
+    src: file.path, // ✅ URL Cloudinary
     alt,
   };
 
-  images.unshift(image);  // Ajoute l'image en haut de la liste
+  images.unshift(image);  // Ajouter en haut de la liste
   saveImagesToFile();
-
-  console.log("Image enregistrée:", image);
 
   res.status(201).json(image);
 });
@@ -98,7 +87,6 @@ app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
 app.delete("/api/images/:id", verifyToken, (req, res) => {
   const id = req.params.id;
   const imageToDelete = images.find((img) => img.id === id);
-
   if (!imageToDelete) return res.status(404).json({ error: "Image introuvable" });
 
   // (Optionnel) Extraire l'ID Cloudinary pour supprimer là-bas aussi
@@ -110,7 +98,7 @@ app.delete("/api/images/:id", verifyToken, (req, res) => {
   res.status(200).json({ success: true });
 });
 
-// 🔐 Login admin (génère un JWT)
+// 🔐 Login admin
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
   if (
@@ -118,15 +106,13 @@ app.post("/api/login", (req, res) => {
     password === process.env.ADMIN_PASSWORD
   ) {
     const token = jwt.sign({ user: username }, process.env.JWT_SECRET, {
-      expiresIn: "2h", // Durée de validité du token
+      expiresIn: "2h",
     });
     return res.json({ token });
   }
-
   res.status(401).json({ error: "Identifiants invalides" });
 });
 
-// Démarrer le serveur
 app.listen(PORT, () => {
   console.log(`✅ Backend prêt sur http://localhost:${PORT}`);
 });

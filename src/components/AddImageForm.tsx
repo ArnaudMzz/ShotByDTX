@@ -42,11 +42,16 @@ export default function AjouterImageForm({ onNewImage }: Props) {
 
   // 🔐 fetch avec token pour formulaire
   const authFetchFormData = (url: string, formData: FormData) => {
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken"); // Récupère le token du localStorage
+    if (!token) {
+      console.error("Token manquant !");
+      return Promise.reject("Token manquant");
+    }
+
     return fetch(url, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`, // Envoie le token dans l'en-tête
       },
       body: formData,
     });
@@ -80,7 +85,7 @@ export default function AjouterImageForm({ onNewImage }: Props) {
       }
     }
 
-    setImages([]);
+    setImages([]); // Réinitialiser la liste des images
   };
 
   const handleAltChange = (index: number, value: string) => {
