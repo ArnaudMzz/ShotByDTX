@@ -42,11 +42,11 @@ export default function AjouterImageForm({ onNewImage }: Props) {
 
   // 🔐 fetch avec token pour formulaire
   const authFetchFormData = (url: string, formData: FormData) => {
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken"); // Récupérer le token d'authentification
     return fetch(url, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`, // Ajouter le token dans les headers
       },
       body: formData,
     });
@@ -95,13 +95,6 @@ export default function AjouterImageForm({ onNewImage }: Props) {
 
   return (
     <>
-      <div>
-        <form action="http://localhost:3001/api/images" method="POST">
-          <input type="file" name="image" />
-          <input type="text" name="alt" placeholder="Description de l'image" />
-          <button type="submit">Envoyer</button>
-        </form>
-      </div>
       <form
         onSubmit={handleSubmit}
         className="max-w-2xl mx-auto flex flex-col gap-6"
