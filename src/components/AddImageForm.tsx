@@ -40,7 +40,6 @@ export default function AjouterImageForm({ onNewImage }: Props) {
     handleFiles(e.dataTransfer.files);
   };
 
-  // 🔐 fetch avec token pour formulaire
   const authFetchFormData = (url: string, formData: FormData) => {
     const token = localStorage.getItem("authToken"); // Récupérer le token d'authentification
     return fetch(url, {

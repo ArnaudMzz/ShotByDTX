@@ -28,7 +28,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "shotbydtx", // Dossier sur Cloudinary
+    folder: "shotbydtx", // Dossier dans Cloudinary
     allowed_formats: ["jpg", "png", "jpeg", "webp"], // Types de fichiers acceptés
     transformation: [{ width: 1200, crop: "limit" }],
   },
@@ -68,8 +68,8 @@ app.post("/api/images", verifyToken, upload.single("image"), async (req, res) =>
   const file = req.file;
   const alt = req.body.alt;
 
-  console.log("✅ Image reçue :", JSON.stringify(file, null, 2));  // Log pour vérifier que le fichier arrive
-  console.log("✅ Alt reçu :", JSON.stringify(alt, null, 2));     // Log pour vérifier l'alt
+  console.log("✅ Image reçue :", JSON.stringify(file, null, 2));
+  console.log("✅ Alt reçu :", JSON.stringify(alt, null, 2));
 
   if (!file || !alt) {
     return res.status(400).json({ error: "Image et alt requis" });
@@ -82,7 +82,7 @@ app.post("/api/images", verifyToken, upload.single("image"), async (req, res) =>
       alt,
     };
 
-    console.log("✅ Image à enregistrer :", JSON.stringify(image, null, 2));  // Log pour voir l'image à enregistrer
+    console.log("✅ Image à enregistrer :", JSON.stringify(image, null, 2));
 
     images.unshift(image); // Ajouter l'image en haut du tableau
     saveImagesToFile(); // Sauvegarde dans le fichier JSON
