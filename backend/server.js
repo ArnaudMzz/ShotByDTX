@@ -28,8 +28,8 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "shotbydtx", // Le dossier où les images seront stockées sur Cloudinary
-    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+    folder: "shotbydtx", // Dossier sur Cloudinary
+    allowed_formats: ["jpg", "png", "jpeg", "webp"], // Types de fichiers acceptés
     transformation: [{ width: 1200, crop: "limit" }],
   },
 });
@@ -41,16 +41,14 @@ let images = fs.existsSync(DATA_FILE)
   ? JSON.parse(fs.readFileSync(DATA_FILE))
   : [];
 
-  function saveImagesToFile() {
-    console.log("✅ Sauvegarde images dans images.json :", images);
-    fs.writeFileSync(DATA_FILE, JSON.stringify(images, null, 2));
-  }
-  
+function saveImagesToFile() {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(images, null, 2));
+}
 
 // Middleware JWT
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = authHeader && authHeader.split(" ")[1]; // "Bearer token"
   if (!token) return res.status(401).json({ error: "Token manquant" });
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -66,37 +64,40 @@ app.get("/api/images", (req, res) => {
 });
 
 // 📤 POST - Upload image (admin uniquement)
-app.post("/api/images", verifyToken, upload.single("image"), (req, res) => {
+app.post("/api/images", verifyToken, upload.single("image"), async (req, res) => {
   const file = req.file;
   const alt = req.body.alt;
 
-  console.log("📸 Fichier reçu :", file);
-  console.log("📝 Texte alternatif reçu :", alt);
+  console.log("✅ Image reçue :", JSON.stringify(file, null, 2));  // Log pour vérifier que le fichier arrive
+  console.log("✅ Alt reçu :", JSON.stringify(alt, null, 2));     // Log pour vérifier l'alt
 
   if (!file || !alt) {
     return res.status(400).json({ error: "Image et alt requis" });
   }
 
-  const image = {
-    id: Date.now().toString(),
-    src: file.path,
-    alt,
-  };
+  try {
+    const image = {
+      id: Date.now().toString(),
+      src: file.path, // L'URL Cloudinary ou chemin généré par Multer
+      alt,
+    };
 
-  console.log("✅ Image à enregistrer :", image);
+    console.log("✅ Image à enregistrer :", JSON.stringify(image, null, 2));  // Log pour voir l'image à enregistrer
 
-  images.unshift(image);
-  saveImagesToFile();
+    images.unshift(image); // Ajouter l'image en haut du tableau
+    saveImagesToFile(); // Sauvegarde dans le fichier JSON
 
-  res.status(201).json(image);
+    res.status(201).json(image); // Réponse avec l'image ajoutée
+  } catch (error) {
+    console.error("❌ Erreur lors de l'upload ou de la sauvegarde de l'image :", error);
+    res.status(500).json({ error: "Erreur serveur lors de l'upload de l'image." });
+  }
 });
 
-
-// 🗑️ DELETE - Supprimer une image (de Cloudinary + du fichier local si nécessaire)
+// 🗑️ DELETE - Supprimer une image
 app.delete("/api/images/:id", verifyToken, (req, res) => {
   const id = req.params.id;
   const imageToDelete = images.find((img) => img.id === id);
-
   if (!imageToDelete) return res.status(404).json({ error: "Image introuvable" });
 
   // Extraire l'ID public de Cloudinary pour supprimer l'image là-bas
